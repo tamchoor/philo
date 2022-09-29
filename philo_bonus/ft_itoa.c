@@ -1,16 +1,62 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
+/*   ft_itoa.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: tamchoor <tamchoor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/29 14:09:49 by tamchoor          #+#    #+#             */
-/*   Updated: 2022/03/29 15:38:18 by tamchoor         ###   ########.fr       */
+/*   Created: 2022/03/29 12:14:12 by tamchoor          #+#    #+#             */
+/*   Updated: 2022/03/29 12:46:23 by tamchoor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+int	len(long nb)
+{
+	int		len;
+
+	len = 0;
+	if (nb < 0)
+	{
+		nb = nb * -1;
+		len++;
+	}
+	while (nb > 0)
+	{
+		nb = nb / 10;
+		len++;
+	}
+	return (len);
+}
+
+char	*ft_itoa(int nb, int len)
+{
+	char	*str;
+	long	n;
+	int		i;
+
+	n = nb;
+	i = len;
+	str = (char *) malloc(sizeof(char) * (i + 1));
+	if (!str)
+		return (NULL);
+	str[i--] = '\0';
+	if (n == 0)
+		str[0] = 48;
+	if (n < 0)
+	{
+		str[0] = '-';
+		n = n * -1;
+	}
+	while (n > 0)
+	{
+		str[i] = 48 + (n % 10);
+		n = n / 10;
+		i--;
+	}
+	return (str);
+}
 
 int	ft_isdigit(int c)
 {
@@ -50,44 +96,4 @@ int	str_is_digit(char **str1)
 		i++;
 	}
 	return (1);
-}
-
-int	return_free_philo_data(t_philo **philo1, t_data *data, int nbr_last)
-{
-	t_philo	*philo;
-	t_philo	*philo_for_free;
-
-	destroy_mutx(&data->message, &data->m_eaten, &data->m_meal);
-	if (data)
-		free(data);
-	if (*philo1 && nbr_last > 0)
-	{
-		philo = *philo1;
-		while (philo->name != nbr_last)
-		{
-			philo_for_free = philo;
-			philo = philo->next;
-			pthread_mutex_destroy(&philo_for_free->fork);
-			free(philo_for_free);
-			if (philo->name == nbr_last)
-			{
-				pthread_mutex_destroy(&philo->fork);
-				free(philo);
-				break ;
-			}
-		}
-	}
-	return (0);
-}
-
-void	ft_write_str(t_philo *philo, char *str, int flag)
-{
-	long	current_time;
-
-	current_time = ft_get_time();
-	current_time = current_time - philo->data->timer;
-	pthread_mutex_lock(&philo->data->message);
-	printf("%d %d %s\n", (int) current_time, philo->name, str);
-	if (flag == YES)
-		pthread_mutex_unlock(&philo->data->message);
 }

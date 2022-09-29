@@ -5,51 +5,32 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: tamchoor <tamchoor@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/29 14:09:49 by tamchoor          #+#    #+#             */
-/*   Updated: 2022/03/29 15:38:18 by tamchoor         ###   ########.fr       */
+/*   Created: 2022/03/29 12:14:27 by tamchoor          #+#    #+#             */
+/*   Updated: 2022/03/31 15:34:37 by tamchoor         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-int	ft_isdigit(int c)
+long	ft_get_time(void)
 {
-	if (c <= '9' && c >= '0')
-		return (1);
-	return (0);
+	struct timeval	tp;
+	long			time;
+
+	if (gettimeofday(&tp, 0) != 0)
+		return (-1);
+	time = (tp.tv_sec * 1000) + (tp.tv_usec / 1000);
+	return (time);
 }
 
-int	ft_strncmp(const char *s1, const char *s2, size_t n)
+void	free_sem(t_philo *philo)
 {
-	register unsigned char	u1;
-	register unsigned char	u2;
+	char	*name;
 
-	while (n-- > 0)
-	{
-		u1 = (unsigned char) *s1++;
-		u2 = (unsigned char) *s2++;
-		if (u1 != u2)
-			return (u1 - u2);
-		if (u1 == '\0')
-			return (0);
-	}
-	return (0);
-}
-
-int	str_is_digit(char **str1)
-{
-	int		i;
-	char	*str;
-
-	i = 0;
-	str = *str1;
-	while (str[i])
-	{
-		if (str[i] < '0' || str[i] > '9')
-			return (0);
-		i++;
-	}
-	return (1);
+	sem_close(philo->s_meal_philo);
+	name = ft_itoa(philo->name, len(philo->name));
+	sem_unlink(name);
+	free(name);
 }
 
 int	return_free_philo_data(t_philo **philo1, t_data *data, int nbr_last)
@@ -57,7 +38,8 @@ int	return_free_philo_data(t_philo **philo1, t_data *data, int nbr_last)
 	t_philo	*philo;
 	t_philo	*philo_for_free;
 
-	destroy_mutx(&data->message, &data->m_eaten, &data->m_meal);
+	close_sems((*philo1)->data->s_message,
+		(*philo1)->data->s_eaten, (*philo1)->data->s_fork);
 	if (data)
 		free(data);
 	if (*philo1 && nbr_last > 0)
@@ -67,11 +49,11 @@ int	return_free_philo_data(t_philo **philo1, t_data *data, int nbr_last)
 		{
 			philo_for_free = philo;
 			philo = philo->next;
-			pthread_mutex_destroy(&philo_for_free->fork);
+			free_sem(philo_for_free);
 			free(philo_for_free);
-			if (philo->name == nbr_last)
+			if (philo->name == (nbr_last))
 			{
-				pthread_mutex_destroy(&philo->fork);
+				free_sem(philo);
 				free(philo);
 				break ;
 			}
@@ -86,8 +68,28 @@ void	ft_write_str(t_philo *philo, char *str, int flag)
 
 	current_time = ft_get_time();
 	current_time = current_time - philo->data->timer;
-	pthread_mutex_lock(&philo->data->message);
+	sem_wait(philo->data->s_message);
 	printf("%d %d %s\n", (int) current_time, philo->name, str);
 	if (flag == YES)
-		pthread_mutex_unlock(&philo->data->message);
+		sem_post(philo->data->s_message);
+}
+
+int	close_sems(sem_t *message, sem_t *eaten, sem_t *forks)
+{
+	if (message != SEM_FAILED)
+	{
+		sem_close(message);
+		sem_unlink("message");
+	}
+	if (eaten != SEM_FAILED)
+	{
+		sem_close(eaten);
+		sem_unlink("eaten");
+	}
+	if (forks != SEM_FAILED)
+	{
+		sem_close(forks);
+		sem_unlink("fork");
+	}
+	return (0);
 }

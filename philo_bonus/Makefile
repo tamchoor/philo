@@ -1,17 +1,16 @@
-NAME = philo
+NAME = philo_bonus
 
 CC = cc
-FLAGS = -Wall -Werror -Wextra 
-FLAGS_CHECK = -Wall -Werror -Wextra  -fsanitize=address -fsanitize=thread 
+FLAGS = -Wall -Werror -Wextra
+FLAGS_CHECK = -Wall -Werror -Wextra 
 INCLUDES = -I$(HEADERS_DIRECTORY)
 
 HEADER = philo.h
 HEADERS_DIRECTORY = .
 
-SOURCES = ft_atol.c philo.c utils.c init_and_check.c main.c
+SOURCES = ft_atol.c philo.c utils.c init_and_check.c  main.c  ft_itoa.c 
 
 OBJECTS	=  $(SOURCES:%.c=%.o)
-
 
 GREEN = \033[0;32m
 RED = \033[0;31m
@@ -28,10 +27,8 @@ $(NAME): $(OBJECTS)
 	@echo "\n$(MARK) $(NAME): $(GREEN)object files were created$(RESET)"
 	@echo "$(MARK) $(NAME): $(GREEN)$(NAME) was created$(RESET)"
 
-
 %.o : %.c $(HEADER)
 	$(CC) $(FLAGS) -c $< -o $@
-
 
 clean:
 	@rm -rf $(OBJECTS) $(OBJECTS_BONUS)
